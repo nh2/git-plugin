@@ -89,7 +89,7 @@ public class GitUtils implements Serializable {
     public Revision sortBranchesForRevision(Revision revision, List<BranchSpec> branchOrder, EnvVars env) {
         ArrayList<Branch> orderedBranches = new ArrayList<Branch>(revision.getBranches().size());
         ArrayList<Branch> revisionBranches = new ArrayList<Branch>(revision.getBranches());
-    	
+
         for(BranchSpec branchSpec : branchOrder) {
             for (Iterator<Branch> i = revisionBranches.iterator(); i.hasNext();) {
                 Branch b = i.next();
@@ -118,7 +118,7 @@ public class GitUtils implements Serializable {
 
         // we only want (B) and (C), as (A) is an ancestor (old).
         final List<Revision> l = new ArrayList<Revision>(revisions);
-        
+
         // Bypass any rev walks if only one branch or less
         if (l.size() <= 1)
             return l;
@@ -134,11 +134,12 @@ public class GitUtils implements Serializable {
                     if (log)
                         LOGGER.fine(MessageFormat.format(
                                 "Computing merge base of {0}  branches", l.size()));
-
+                        System.out.println("\n\nComputing merge base of " + l.size() + "\n");
                     try {
                         walk.setRetainBody(false);
                         walk.setRevFilter(RevFilter.MERGE_BASE);
                         for (int i = 0; i < l.size(); i++) {
+                            System.out.println("for-loop " + i + " " + l.size());
                             for (int j = i + 1; j < l.size(); j++) {
                                 Revision revI = l.get(i);
                                 Revision revJ = l.get(j);
@@ -178,6 +179,8 @@ public class GitUtils implements Serializable {
                         LOGGER.fine(MessageFormat.format(
                                 "Computed {0} merge bases in {1} ms", calls,
                                 (System.currentTimeMillis() - start)));
+                        System.out.println("Computed in  " + calls + " and " + (System.currentTimeMillis() - start) + " ms");
+                        System.out.println("output length " + l.size());
 
                     return l;
                 }
@@ -217,7 +220,7 @@ public class GitUtils implements Serializable {
             } else {
                 env = new EnvVars(System.getenv());
             }
-            
+
             p.getScm().buildEnvVars(b,env);
 
             if (lastBuiltOn != null) {
