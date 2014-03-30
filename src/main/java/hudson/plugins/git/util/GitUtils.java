@@ -177,7 +177,11 @@ public class GitUtils implements Serializable {
                         LOGGER.fine(MessageFormat.format(
                                 "Computed {0} merge bases in {1} ms", calls,
                                 (System.currentTimeMillis() - start)));
+                        System.out.println(MessageFormat.format(
+                                "\n\nComputed {0} merge bases in {1} ms\n", calls,
+                                (System.currentTimeMillis() - start)));
 
+                    System.out.println("size " + tipCandidates.values().size());
                     return new ArrayList<Revision>(tipCandidates.values());
                 }
             });
