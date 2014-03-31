@@ -91,7 +91,7 @@ public class GitUtils {
 
         // we only want (B) and (C), as (A) is an ancestor (old).
         final List<Revision> l = new ArrayList<Revision>(revisions);
-        
+
         // Bypass any rev walks if only one branch or less
         if (l.size() <= 1)
             return l;
@@ -106,30 +106,44 @@ public class GitUtils {
         Repository repository = null;
         final long start = System.currentTimeMillis();
         long calls = 0;
+        int case1 = 0;
+        int case2 = 0;
+        int case3 = 0;
         if (log)
             LOGGER.fine(MessageFormat.format(
                     "Computing merge base of {0}  branches", l.size()));
+            System.out.println(MessageFormat.format(
+                    "Computing merge base of {0}  branches", l.size()));
         try {
             repository = git.getRepository();
+            System.out.println("repo " + repository);
             walk = new RevWalk(repository);
             walk.setRetainBody(false);
             walk.setRevFilter(RevFilter.MERGE_BASE);
-            for (int i = 0; i < l.size(); i++)
+            for (int i = 0; i < l.size(); i++) {
+                System.out.println("loop " + i + " of " + l.size());
                 for (int j = i + 1; j < l.size(); j++) {
                     revI = l.get(i);
                     revJ = l.get(j);
                     shaI = revI.getSha1();
                     shaJ = revJ.getSha1();
+                    // System.out.println("shas " + shaI + " " + shaJ);
 
                     walk.reset();
                     walk.markStart(walk.parseCommit(shaI));
                     walk.markStart(walk.parseCommit(shaJ));
+                    long before = System.nanoTime();
                     commonAncestor = walk.next();
+                    long after = System.nanoTime();
+                    // System.out.println("took " + (after-before));
                     calls++;
 
-                    if (commonAncestor == null)
+                    if (commonAncestor == null) {
+                        case1++;
                         continue;
+                    }
                     if (commonAncestor.equals(shaI)) {
+                        case2++;
                         if (log)
                             LOGGER.fine("filterTipBranches: " + revJ
                                     + " subsumes " + revI);
@@ -138,13 +152,15 @@ public class GitUtils {
                         break;
                     }
                     if (commonAncestor.equals(shaJ)) {
+                        case3++;
                         if (log)
                             LOGGER.fine("filterTipBranches: " + revI
                                     + " subsumes " + revJ);
                         l.remove(j);
                         j--;
                     }
-                }
+                    // System.out.println("casesX " + calls + " - " + case1 + " " + case2 + " " + case3);
+                }}
         } catch (IOException e) {
             throw new GitException("Error computing merge base", e);
         } finally {
@@ -155,6 +171,10 @@ public class GitUtils {
             LOGGER.fine(MessageFormat.format(
                     "Computed {0} merge bases in {1} ms", calls,
                     (System.currentTimeMillis() - start)));
+            System.out.println(MessageFormat.format(
+                    "Computed {0} merge bases in {1} ms", calls,
+                    (System.currentTimeMillis() - start)));
+            System.out.println("cases " + case1 + " " + case2 + " " + case3);
 
         return l;
     }
@@ -189,7 +209,7 @@ public class GitUtils {
             } else {
                 env = new EnvVars(System.getenv());
             }
-            
+
             p.getScm().buildEnvVars(b,env);
 
             if (lastBuiltOn != null) {
